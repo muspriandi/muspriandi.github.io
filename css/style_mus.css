@@ -1,0 +1,16 @@
+.box-banyangan {
+	cursor: pointer;
+	transition: 0.5s;
+	border: 1.5px solid transparent;
+	box-shadow: 5px 8px 8px rgba(0,0,0,.1);
+}
+
+.box-banyangan:hover {
+	transition: 0.5s;
+	border: 1.5px solid #007bff;
+	box-shadow: 0 0 3px #007bff;
+}
+
+.box-tumpul {
+	border-radius: 10px;
+}

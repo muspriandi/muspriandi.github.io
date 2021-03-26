@@ -1,6 +1,11 @@
-Thanks for downloading this template!
+# DTS - WEB - 23
 
-Template Name: BizLand
-Template URL: https://bootstrapmade.com/bizland-bootstrap-business-template/
-Author: BootstrapMade.com
-License: https://bootstrapmade.com/license/
+## Kelas - Web - 1B
+
+Header & Footer :
+Main : Nurjana Ariffilah Idris
+Body 1 :
+Body 2 : Mus Priandi
+Body 3 :
+
+DTS PRO HTML & CSS &copy; 2021
