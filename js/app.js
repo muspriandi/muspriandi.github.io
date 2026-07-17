@@ -259,10 +259,13 @@
       return { wrap: wrap, input: input };
     }
 
+    var DEFAULT_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     var cfg = el('div', 'custom-config');
-    var alpha = field('Alphabet (blank = default)',
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', false);
+    var alpha = field('Alphabet (blank = default)', DEFAULT_ALPHABET, false);
     var minLen = field('Min length', '0', true);
+    // Pre-filled defaults (editable).
+    alpha.input.value = DEFAULT_ALPHABET;
+    minLen.input.value = '8';
     cfg.appendChild(alpha.wrap);
     cfg.appendChild(minLen.wrap);
     card.appendChild(cfg);
