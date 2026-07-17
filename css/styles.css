@@ -1,0 +1,171 @@
+/* ============================================================
+ * Sqids Encoder / Decoder — styling
+ * ============================================================ */
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --text: #1a1d21;
+  --muted: #6b7280;
+  --border: #e2e5e9;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --error: #dc2626;
+  --ok: #16a34a;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101318;
+    --card: #1a1f27;
+    --text: #e8eaed;
+    --muted: #9aa2ad;
+    --border: #2c333d;
+    --accent: #818cf8;
+    --accent-soft: #23283f;
+    --error: #f87171;
+    --ok: #4ade80;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  flex: 1;
+}
+h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+.subtitle { color: var(--muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+.subtitle a { color: var(--accent); }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--section-color, var(--accent));
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 1rem;
+}
+.section-header h2 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--section-color, var(--text));
+}
+.section-config {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+.pane-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+.panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 560px) { .panes { grid-template-columns: 1fr; } }
+input[type="text"] {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  font-family: var(--mono);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+input:focus { border-color: var(--section-color, var(--accent)); }
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.result {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--accent-soft);
+  border-radius: 8px;
+  word-break: break-all;
+  min-height: 2.35rem;
+  display: flex;
+  align-items: center;
+}
+.result.empty { color: var(--muted); font-size: 0.85rem; }
+.result.error { background: transparent; color: var(--error); border: 1px dashed var(--error); font-size: 0.85rem; }
+button.copy {
+  flex-shrink: 0;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+}
+button.copy:hover { border-color: var(--section-color, var(--accent)); color: var(--section-color, var(--accent)); }
+button.copy.copied { border-color: var(--ok); color: var(--ok); }
+footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 1rem;
+}
+footer a { color: var(--accent); }
+
+/* ---- Automation API help card ---- */
+.automation-help p { margin: 0 0 0.6rem; font-size: 0.9rem; color: var(--muted); }
+.automation-help ul { margin: 0 0 0.8rem; padding-left: 1.1rem; font-size: 0.88rem; color: var(--text); }
+.automation-help code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  background: var(--accent-soft);
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+}
+.example-links {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  word-break: break-all;
+}
+.example-links a { color: var(--accent); }
+.help-note { font-size: 0.82rem; }
+
+/* ---- Headless JSON output (query mode) ---- */
+.json-output {
+  margin: 0;
+  padding: 1.25rem;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+}
