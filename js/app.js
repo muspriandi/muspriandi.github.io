@@ -54,12 +54,25 @@
     var out = { type: typeRaw, action: actionRaw, value: value, ok: false };
     try {
       var key = sectionKey(typeRaw || '');
-      var section = SECTIONS.filter(function (s) { return sectionKey(s.name) === key; })[0];
-      if (!section) {
-        throw new Error('Unknown type "' + typeRaw + '". Expected one of: ' +
-          SECTIONS.map(function (s) { return sectionKey(s.name); }).join(', '));
+      var sqids;
+      if (key === 'custom') {
+        // type=custom: alphabet & minlength come from the query, not SECTIONS.
+        var options = {};
+        var customAlphabet = params.get('alphabet');
+        if (customAlphabet) options.alphabet = customAlphabet;
+        var customMin = parseInt(params.get('minlength'), 10);
+        if (!isNaN(customMin) && customMin > 0) options.minLength = customMin;
+        out.alphabet = options.alphabet || '(default)';
+        out.minLength = options.minLength || 0;
+        sqids = new Sqids(options);
+      } else {
+        var section = SECTIONS.filter(function (s) { return sectionKey(s.name) === key; })[0];
+        if (!section) {
+          throw new Error('Unknown type "' + typeRaw + '". Expected one of: custom, ' +
+            SECTIONS.map(function (s) { return sectionKey(s.name); }).join(', '));
+        }
+        sqids = new Sqids({ alphabet: section.alphabet, minLength: section.minLength });
       }
-      var sqids = new Sqids({ alphabet: section.alphabet, minLength: section.minLength });
 
       if (value === null || value === '') throw new Error('Missing "value" parameter');
 
@@ -219,4 +232,112 @@
       }
     });
   });
+
+  /* ----------------------------------------------------------
+   * Custom section — user supplies alphabet + min length live.
+   * Matches automation type=custom (&alphabet=&minlength=).
+   * ---------------------------------------------------------- */
+  (function buildCustomCard() {
+    var card = el('div', 'card');
+    card.style.setProperty('--section-color', '#7c3aed'); // violet
+
+    var header = el('div', 'section-header');
+    header.appendChild(el('h2', null, 'Custom'));
+    header.appendChild(el('span', 'section-config', 'set your own alphabet & min length'));
+    card.appendChild(header);
+
+    function field(labelText, placeholder, numeric) {
+      var wrap = el('div');
+      wrap.appendChild(el('p', 'pane-label', labelText));
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.spellcheck = false;
+      input.autocomplete = 'off';
+      input.placeholder = placeholder;
+      if (numeric) input.inputMode = 'numeric';
+      wrap.appendChild(input);
+      return { wrap: wrap, input: input };
+    }
+
+    var cfg = el('div', 'custom-config');
+    var alpha = field('Alphabet (blank = default)',
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', false);
+    var minLen = field('Min length', '0', true);
+    cfg.appendChild(alpha.wrap);
+    cfg.appendChild(minLen.wrap);
+    card.appendChild(cfg);
+
+    var cfgError = el('div', 'result error');
+    cfgError.hidden = true;
+    cfgError.style.marginTop = '0.6rem';
+    card.appendChild(cfgError);
+
+    var panes = el('div', 'panes');
+    var enc = buildPane('Encode — numbers → ID', 'e.g. 1, 2, 3', 'ID appears here');
+    var dec = buildPane('Decode — ID → numbers', 'paste an ID', 'Numbers appear here');
+    panes.appendChild(enc.pane);
+    panes.appendChild(dec.pane);
+    card.appendChild(panes);
+    container.appendChild(card);
+
+    function buildSqids() {
+      var options = {};
+      var a = alpha.input.value.trim();
+      if (a) options.alphabet = a;
+      var ml = parseInt(minLen.input.value, 10);
+      if (!isNaN(ml) && ml > 0) options.minLength = ml;
+      return new Sqids(options);
+    }
+
+    function refresh() {
+      var sqids;
+      try {
+        sqids = buildSqids();
+        cfgError.hidden = true;
+      } catch (e) {
+        cfgError.textContent = 'Invalid config: ' + e.message;
+        cfgError.hidden = false;
+        setResult(enc.result, enc.copy, 'Fix the config above', 'empty');
+        setResult(dec.result, dec.copy, 'Fix the config above', 'empty');
+        return;
+      }
+
+      var rawE = enc.input.value.trim();
+      if (!rawE) {
+        setResult(enc.result, enc.copy, 'ID appears here', 'empty');
+      } else {
+        try {
+          setResult(enc.result, enc.copy, sqids.encode(parseNumbers(rawE)), 'ok');
+        } catch (e) {
+          setResult(enc.result, enc.copy, e.message, 'error');
+        }
+      }
+
+      var rawD = dec.input.value.trim();
+      if (!rawD) {
+        setResult(dec.result, dec.copy, 'Numbers appear here', 'empty');
+      } else {
+        try {
+          var numbers = sqids.decode(rawD);
+          if (numbers.length === 0) {
+            setResult(dec.result, dec.copy, 'Not a valid ID for this alphabet', 'error');
+          } else {
+            var canonical = sqids.encode(numbers);
+            var text = numbers.join(', ');
+            if (canonical !== rawD) {
+              text += '  (non-canonical: re-encodes to "' + canonical + '")';
+            }
+            setResult(dec.result, dec.copy, text, 'ok');
+          }
+        } catch (e) {
+          setResult(dec.result, dec.copy, e.message, 'error');
+        }
+      }
+    }
+
+    alpha.input.addEventListener('input', refresh);
+    minLen.input.addEventListener('input', refresh);
+    enc.input.addEventListener('input', refresh);
+    dec.input.addEventListener('input', refresh);
+  })();
 })();

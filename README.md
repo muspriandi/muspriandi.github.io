@@ -3,7 +3,8 @@
 A single web page that encodes numbers into short unique IDs and decodes them back, using [Sqids](https://sqids.org). One page serves **both** casual human use (interactive UI) and **automation** (URL query → JSON).
 
 - **100% client-side** — no server, no data leaves your browser
-- **3 sections** — Catalog Category, Item, and Variant, each with its own alphabet + minimum ID length, and its own encode/decode
+- **3 fixed sections** — Catalog Category, Item, and Variant, each with its own alphabet + minimum ID length, and its own encode/decode
+- **Custom section** — enter your own alphabet + min length in the UI (or pass them to the API as `type=custom`)
 - **Two modes, one page** — open normally for the UI, or add query params to get JSON
 
 ## File structure
@@ -33,15 +34,17 @@ Add query params to the same page and it renders **JSON only**:
 index.html?type=<catalogcategory|item|variant>&action=<enc|dec>&value=<...>
 ```
 
-- `type` — which section's alphabet/minLength to use (section name, lowercased, no spaces)
+- `type` — which section's alphabet/minLength to use (section name, lowercased, no spaces), or `custom`
 - `action` — `enc` (numbers → ID) or `dec` (ID → numbers)
 - `value` — numbers (comma/space separated) for `enc`, or an ID for `dec`
+- `alphabet`, `minlength` — **only** for `type=custom` (both optional; blank alphabet = Sqids default, `minlength` defaults to 0)
 
 Examples:
 
 ```
 index.html?type=item&action=enc&value=1,2,3
 index.html?type=catalogcategory&action=dec&value=jOxlEWJYRy4hga2B
+index.html?type=custom&action=enc&value=1,2,3&alphabet=abcdefghij&minlength=8
 ```
 
 Result JSON (also exposed on `window.__sqidsResult`):

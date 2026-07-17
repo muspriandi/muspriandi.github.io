@@ -21,14 +21,16 @@
     <p>Append query params to this page's URL to get a JSON result — no clicking. Handy for automated tests (drive it with a headless browser and read <code>window.__sqidsResult</code>).</p>
     <p class="pane-label">Parameters</p>
     <ul>
-      <li><code>type</code> = <code>catalogcategory</code> | <code>item</code> | <code>variant</code></li>
+      <li><code>type</code> = <code>catalogcategory</code> | <code>item</code> | <code>variant</code> | <code>custom</code></li>
       <li><code>action</code> = <code>enc</code> (numbers → ID) | <code>dec</code> (ID → numbers)</li>
       <li><code>value</code> = numbers (comma/space separated) for <code>enc</code>, or an ID for <code>dec</code></li>
+      <li><code>alphabet</code>, <code>minlength</code> = only for <code>type=custom</code> (both optional)</li>
     </ul>
     <p class="pane-label">Examples</p>
     <div class="example-links">
       <a href="?type=item&action=enc&value=12">?type=item&action=enc&value=12</a>
       <a href="?type=catalogcategory&action=enc&value=42">?type=catalogcategory&action=enc&value=42</a>
+      <a href="?type=custom&action=enc&value=1,2,3&alphabet=abcdefghij&minlength=8">?type=custom&action=enc&value=1,2,3&alphabet=abcdefghij&minlength=8</a>
     </div>
     <p class="help-note">Response is JSON: <code>{ "ok": true, "type": "item", "action": "enc", "result": "…" }</code>. On failure: <code>{ "ok": false, "error": "…" }</code>.</p>
   </div>
