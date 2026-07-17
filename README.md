@@ -52,16 +52,83 @@ Result JSON (also exposed on `window.__sqidsResult`):
 
 On error: `{ "ok": false, "error": "..." }`.
 
-> **Note on GitHub Pages + curl:** Pages is static hosting — it does not run JS per
-> request, so a plain `curl` returns the HTML, not the JSON. The JSON is computed in the
-> browser. Read it with a headless browser:
->
-> ```js
-> // Playwright / Puppeteer
-> await page.goto('https://<you>.github.io/?type=item&action=enc&value=1,2,3');
-> const res = await page.evaluate(() => window.__sqidsResult);
-> // or: JSON.parse(await page.textContent('#output'))
-> ```
+## How automation consumes it
+
+The JSON is produced by JavaScript, so a consumer must **run** that JS. GitHub Pages is
+static hosting — it does not execute JS per request — so plain `curl` returns the HTML
+source, never the JSON. Two ways that work:
+
+### Option A — Drive the deployed page with a headless browser
+
+Consumes the live github.io URL (tests the real deployed artifact).
+
+**Playwright:**
+
+```js
+const { chromium } = require('playwright');
+
+async function sqids(type, action, value) {
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  const url = `https://muspriandi.github.io/?type=${type}&action=${action}&value=${encodeURIComponent(value)}`;
+  await page.goto(url);
+  const res = await page.evaluate(() => window.__sqidsResult); // the JSON object
+  await browser.close();
+  return res;
+}
+
+// usage
+const r = await sqids('item', 'enc', '1,2,3');
+// { ok: true, type: 'item', action: 'enc', result: 'YTMSAG9BduXC7tom', ... }
+if (!r.ok) throw new Error(r.error);
+```
+
+Puppeteer is identical (`page.evaluate(() => window.__sqidsResult)`). If your tool can't
+call `evaluate`, read the visible text instead:
+
+```js
+JSON.parse(await page.textContent('#output'))
+```
+
+### Option B — Skip the browser, run the same logic in Node
+
+The encode/decode logic is just `js/sqids.js` + `js/config.js`. CI can load them
+directly — **no browser, no network, same alphabets**, so results match the site
+exactly. Fastest for automated tests.
+
+```js
+// sqids-node.js  (place next to the js/ folder)
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const ctx = vm.createContext({ Blob });
+for (const f of ['js/sqids.js', 'js/config.js']) {
+  vm.runInContext(fs.readFileSync(path.join(__dirname, f), 'utf8'), ctx);
+}
+// `class Sqids` is lexically scoped inside the vm context — expose it on the sandbox.
+vm.runInContext('this.Sqids = Sqids; this.SECTIONS = SECTIONS;', ctx);
+
+function key(name) { return name.toLowerCase().replace(/[\s_-]/g, ''); }
+function make(type) {
+  const s = ctx.SECTIONS.find(x => key(x.name) === key(type));
+  if (!s) throw new Error('unknown type ' + type);
+  return new ctx.Sqids({ alphabet: s.alphabet, minLength: s.minLength });
+}
+module.exports = {
+  enc: (type, nums) => make(type).encode(nums),  // enc('item', [1,2,3]) -> 'YTMSAG9BduXC7tom'
+  dec: (type, id)   => make(type).decode(id),    // dec('item', 'YTMS…')  -> [1,2,3]
+};
+```
+
+### What won't work
+
+```bash
+curl "https://muspriandi.github.io/?type=item&action=enc&value=1,2,3"   # returns HTML, not JSON
+```
+
+For a true `curl` → JSON endpoint you'd need a serverless function (Cloudflare
+Workers/Vercel), not GitHub Pages.
 
 ## Editing the config
 
