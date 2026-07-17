@@ -270,9 +270,12 @@
     cfg.appendChild(minLen.wrap);
     card.appendChild(cfg);
 
+    // Note: don't use the `hidden` attribute here — the `.result` class sets
+    // `display: flex`, which overrides `[hidden] { display: none }`. Toggle display
+    // explicitly instead so the error box truly hides when the config is valid.
     var cfgError = el('div', 'result error');
-    cfgError.hidden = true;
     cfgError.style.marginTop = '0.6rem';
+    cfgError.style.display = 'none';
     card.appendChild(cfgError);
 
     var panes = el('div', 'panes');
@@ -296,10 +299,11 @@
       var sqids;
       try {
         sqids = buildSqids();
-        cfgError.hidden = true;
+        cfgError.textContent = '';
+        cfgError.style.display = 'none';
       } catch (e) {
         cfgError.textContent = 'Invalid config: ' + e.message;
-        cfgError.hidden = false;
+        cfgError.style.display = 'flex';
         setResult(enc.result, enc.copy, 'Fix the config above', 'empty');
         setResult(dec.result, dec.copy, 'Fix the config above', 'empty');
         return;
