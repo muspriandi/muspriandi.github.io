@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sqids Encoder / Decoder</title>
+<title>Sqids Encoder / Decoder — Automation Test</title>
 <meta name="description" content="Encode numbers to short unique IDs and decode them back, using Sqids.">
 <style>
   :root {
@@ -145,13 +145,39 @@
 <body>
 <main>
   <nav style="display:flex;gap:0.5rem;margin-bottom:1rem;font-size:0.85rem;font-family:var(--mono)">
-    <span style="padding:0.3rem 0.7rem;border-radius:999px;background:var(--accent);color:#fff;font-weight:600">Production</span>
-    <a href="automation-test.html" style="padding:0.3rem 0.7rem;border-radius:999px;border:1px solid var(--border);color:var(--muted);text-decoration:none">Automation Test →</a>
+    <a href="index.html" style="padding:0.3rem 0.7rem;border-radius:999px;border:1px solid var(--border);color:var(--muted);text-decoration:none">← Production</a>
+    <span style="padding:0.3rem 0.7rem;border-radius:999px;background:#d97706;color:#fff;font-weight:600">Automation Test</span>
   </nav>
-  <h1>Sqids Encoder / Decoder</h1>
+  <div style="border:1px solid #d97706;background:rgba(217,119,6,0.12);color:#d97706;border-radius:8px;padding:0.6rem 0.9rem;margin-bottom:1rem;font-size:0.85rem;font-weight:600">
+    ⚠️ Automation-Test environment — this page uses SEPARATE alphabets from Production. IDs are not interchangeable between environments.
+  </div>
+  <h1>Sqids Encoder / Decoder <span style="font-size:0.8rem;font-weight:600;color:#d97706;vertical-align:middle">· AUTOMATION TEST</span></h1>
   <p class="subtitle">Encode numbers into short unique IDs and back, powered by <a href="https://sqids.org" target="_blank" rel="noopener">Sqids</a>. Each section uses its own alphabet &amp; minimum length. Everything runs in your browser.</p>
 
   <div id="sections"><!-- sections are rendered here from the SECTIONS config below --></div>
+
+  <div class="card" style="--section-color:#64748b">
+    <div class="section-header"><h2 style="color:#64748b">🤖 Automation API (URL query)</h2></div>
+    <p style="margin:0 0 0.6rem;font-size:0.9rem;color:var(--muted)">
+      Append query params to this page's URL to get a JSON result — no clicking. Handy for automated tests.
+    </p>
+    <p class="pane-label">Parameters</p>
+    <ul style="margin:0 0 0.8rem;padding-left:1.1rem;font-size:0.88rem;color:var(--text)">
+      <li><code>type</code> = <code>catalogcategory</code> | <code>item</code> | <code>variant</code></li>
+      <li><code>action</code> = <code>enc</code> (numbers → ID) | <code>dec</code> (ID → numbers)</li>
+      <li><code>value</code> = numbers (comma/space separated) for <code>enc</code>, or an ID for <code>dec</code></li>
+    </ul>
+    <p class="pane-label">Examples</p>
+    <div style="font-family:var(--mono);font-size:0.82rem;display:flex;flex-direction:column;gap:0.35rem">
+      <a href="?type=item&action=enc&value=1,2,3">?type=item&action=enc&value=1,2,3</a>
+      <a href="?type=catalogcategory&action=dec&value=YANlBD">?type=catalogcategory&action=dec&value=YANlBD</a>
+    </div>
+    <p style="margin:0.8rem 0 0;font-size:0.82rem;color:var(--muted)">
+      Response is JSON in the page body (also on <code>window.__sqidsResult</code>):
+      <code>{ "ok": true, "type": "item", "action": "enc", "result": "K5tzSJ1Q", ... }</code>.
+      On failure: <code>{ "ok": false, "error": "..." }</code>.
+    </p>
+  </div>
 </main>
 
 <footer>
@@ -903,20 +929,20 @@ var SECTIONS = [
   {
     name: 'Catalog Category',
     color: '#4f46e5', // indigo
-    alphabet: 'pV2D7ZbzRPSulJdgNctvFq1KGhfH54wsUETn6oQr8Bi3mMACa09exYOkLyXjWI',
-    minLength: 16,
+    alphabet: 'EY6MbQIrfpgZ5vzR9NDJHoAiL2BG8u3KFmne7ThSlckyX1UaVqx4jwPOCsdWt0',
+    minLength: 6,
   },
   {
     name: 'Item',
     color: '#0d9488', // teal
-    alphabet: 'qQAh6OedzXGJHiTn3WE0vK7yNCtl8c5UmfsLoxgjYPDIuMS1kwF492aVRpZrbB',
-    minLength: 16,
+    alphabet: '0rb49Xdnkm5SQpjyZOvx2oTNtJ18UIEaPReVzsM7Lu6CDci3BwKWfAhGYglqFH',
+    minLength: 8,
   },
   {
     name: 'Variant',
     color: '#d97706', // amber
-    alphabet: '70lMmTAPvUjuGLrORNeHS84ca9hsgynDkxJVpCwfKEZib1qXdz3t52Q6FoYIWB',
-    minLength: 16,
+    alphabet: 'OHnL9jf81xc4A6zt2PDFTkXVGBUusghaCN0KREpiWYZ7lSb3JQwedIvqrMym5o',
+    minLength: 10,
   },
 ];
 
@@ -947,6 +973,78 @@ var SECTIONS = [
       numbers.push(n);
     }
     return numbers;
+  }
+
+  function sectionKey(name) {
+    return name.toLowerCase().replace(/[\s_-]/g, '');
+  }
+
+  /* ----------------------------------------------------------
+   * Headless / automation mode
+   * URL: automation-test.html?type=<item|catalogcategory|variant>
+   *                          &action=<enc|dec>
+   *                          &value=<numbers or id>
+   * Renders a JSON result and exposes it as window.__sqidsResult
+   * for automated tests to read. Falls through to the UI when no
+   * type/action/value params are present.
+   * ---------------------------------------------------------- */
+  function runHeadless(params) {
+    var typeRaw = params.get('type');
+    var actionRaw = params.get('action');
+    var value = params.get('value');
+
+    var out = { type: typeRaw, action: actionRaw, value: value, ok: false };
+    try {
+      var key = sectionKey(typeRaw || '');
+      var section = SECTIONS.filter(function (s) { return sectionKey(s.name) === key; })[0];
+      if (!section) {
+        throw new Error('Unknown type "' + typeRaw + '". Expected one of: ' +
+          SECTIONS.map(function (s) { return sectionKey(s.name); }).join(', '));
+      }
+      var sqids = new Sqids({ alphabet: section.alphabet, minLength: section.minLength });
+
+      if (value === null || value === '') throw new Error('Missing "value" parameter');
+
+      var act = (actionRaw || '').toLowerCase();
+      if (act === 'enc' || act === 'encode') {
+        var numbers = parseNumbers(value);
+        if (numbers.length === 0) throw new Error('No numbers provided to encode');
+        out.action = 'enc';
+        out.numbers = numbers;
+        out.result = sqids.encode(numbers);
+        out.ok = true;
+      } else if (act === 'dec' || act === 'decode') {
+        var decoded = sqids.decode(value);
+        if (decoded.length === 0) {
+          throw new Error('"' + value + '" is not a valid ID for type ' + section.name);
+        }
+        out.action = 'dec';
+        out.result = decoded;
+        out.canonical = sqids.encode(decoded) === value;
+        out.ok = true;
+      } else {
+        throw new Error('Unknown action "' + actionRaw + '". Expected enc or dec.');
+      }
+    } catch (e) {
+      out.ok = false;
+      out.error = e.message;
+    }
+
+    window.__sqidsResult = out;
+    var json = JSON.stringify(out, null, 2);
+    document.title = (out.ok ? 'OK' : 'ERROR') + ' — Sqids Automation';
+    document.body.innerHTML =
+      '<pre id="output" style="margin:0;padding:1.25rem;font-family:var(--mono);' +
+      'font-size:0.95rem;white-space:pre-wrap;word-break:break-word;' +
+      'color:var(--text);background:var(--bg);min-height:100vh">' +
+      json.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</pre>';
+    return out;
+  }
+
+  var params = new URLSearchParams(window.location.search);
+  if (params.has('type') || params.has('action') || params.has('value')) {
+    runHeadless(params);
+    return;
   }
 
   function bindCopy(button, resultEl) {
